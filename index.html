@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ลบพื้นหลังรูป · Background Remover</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✂️</text></svg>" />
+    <!-- Enables cross-origin isolation (multi-threaded WASM) on static hosts like GitHub Pages; no-op when headers are already set.
+         The src uses the Vite base so the service worker is registered inside the project-site scope. -->
+    <script src="%BASE_URL%coi-serviceworker.js" vite-ignore></script>
+  </head>
+  <body data-stage="init">
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo">✂️</span>
+        <div>
+          <h1 data-i18n="appName">ลบพื้นหลังรูป</h1>
+          <p class="tagline" data-i18n="tagline"></p>
+        </div>
+      </div>
+      <div class="top-right">
+        <span class="badge" id="engineBadge" title="">…</span>
+        <div class="lang" role="group" aria-label="Language">
+          <button type="button" data-lang="th">ไทย</button>
+          <button type="button" data-lang="en">EN</button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section id="dropzone" class="dropzone" tabindex="0">
+        <div class="drop-inner">
+          <div class="drop-icon">🖼️</div>
+          <h2 data-i18n="dropTitle"></h2>
+          <p data-i18n="dropSub"></p>
+          <button type="button" class="primary" id="chooseBtn" data-i18n="chooseFile"></button>
+          <p class="muted small" data-i18n="dropFormats"></p>
+          <p class="muted small" data-i18n="firstRunNote"></p>
+        </div>
+        <input id="fileInput" type="file" accept="image/*" hidden />
+      </section>
+
+      <section id="editor" class="editor" hidden>
+        <aside class="panel">
+          <div class="group">
+            <h3 data-i18n="secSelect"></h3>
+            <div class="tools">
+              <button type="button" class="tool" data-tool="add"><span class="ic add">＋</span><span data-i18n="toolAdd"></span></button>
+              <button type="button" class="tool" data-tool="remove"><span class="ic rem">－</span><span data-i18n="toolRemove"></span></button>
+            </div>
+            <p class="muted small" data-i18n="hintClick"></p>
+            <div class="sub" data-i18n="candTitle"></div>
+            <div class="seg" id="candSeg">
+              <button type="button" data-cand="0" data-i18n="candSmall"></button>
+              <button type="button" data-cand="1" data-i18n="candMedium"></button>
+              <button type="button" data-cand="2" data-i18n="candLarge"></button>
+            </div>
+          </div>
+          <div class="group">
+            <h3 data-i18n="secBrush"></h3>
+            <div class="tools">
+              <button type="button" class="tool" data-tool="brush-add"><span class="ic add">🖌</span><span data-i18n="toolBrushAdd"></span></button>
+              <button type="button" class="tool" data-tool="brush-remove"><span class="ic rem">🧽</span><span data-i18n="toolBrushRemove"></span></button>
+            </div>
+            <label class="row"><span data-i18n="brushSize"></span><input id="brushSize" type="range" min="2" max="200" value="30" /><output id="brushSizeOut">30</output></label>
+          </div>
+          <div class="group">
+            <h3 data-i18n="secHistory"></h3>
+            <div class="btnrow">
+              <button type="button" id="undoBtn" data-i18n="undo"></button>
+              <button type="button" id="redoBtn" data-i18n="redo"></button>
+            </div>
+            <div class="btnrow">
+              <button type="button" id="resetBtn" data-i18n="resetAuto"></button>
+            </div>
+            <div class="btnrow">
+              <button type="button" id="clearBtn" data-i18n="clearAll"></button>
+              <button type="button" id="allBtn" data-i18n="selectAll"></button>
+            </div>
+          </div>
+          <div class="group">
+            <h3 data-i18n="secView"></h3>
+            <div class="seg" id="viewSeg">
+              <button type="button" data-view="result" data-i18n="viewResult"></button>
+              <button type="button" data-view="overlay" data-i18n="viewOverlay"></button>
+              <button type="button" data-view="original" data-i18n="viewOriginal"></button>
+            </div>
+            <label class="row"><span data-i18n="bg"></span>
+              <select id="bgSelect">
+                <option value="checker" data-i18n="bgChecker"></option>
+                <option value="white" data-i18n="bgWhite"></option>
+                <option value="black" data-i18n="bgBlack"></option>
+                <option value="green" data-i18n="bgGreen"></option>
+              </select>
+            </label>
+          </div>
+          <div class="group">
+            <h3 data-i18n="secExport"></h3>
+            <label class="row check"><input type="checkbox" id="cropChk" /><span data-i18n="cropToContent"></span></label>
+            <button type="button" class="primary wide" id="downloadBtn" data-i18n="download"></button>
+            <button type="button" class="wide" id="newBtn" data-i18n="newImage"></button>
+          </div>
+          <details class="group">
+            <summary data-i18n="secModel"></summary>
+            <select id="modelSelect" class="wide">
+              <option value="birefnet-lite" data-i18n="modelBiRefNet"></option>
+              <option value="modnet" data-i18n="modelModnet"></option>
+            </select>
+            <button type="button" class="wide" id="rerunBtn" data-i18n="rerun"></button>
+          </details>
+        </aside>
+
+        <div class="stage-wrap">
+          <div class="stage bg-checker" id="stage">
+            <canvas id="view"></canvas>
+            <canvas id="overlay"></canvas>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="statusbar">
+      <div class="status-line">
+        <span id="spinner" class="spinner" hidden></span>
+        <span id="statusText"></span>
+        <span id="keptText" class="muted"></span>
+      </div>
+      <div class="progress" id="progress" hidden><div id="progressBar"></div></div>
+      <p class="muted small foot"><span data-i18n="privacy"></span> · <span data-i18n="licenses"></span></p>
+    </footer>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

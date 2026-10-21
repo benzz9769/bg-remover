@@ -1,0 +1,27 @@
+{
+  "name": "bg-remover",
+  "version": "0.1.0",
+  "description": "Client-side background remover (BiRefNet + SlimSAM via transformers.js)",
+  "scripts": {
+    "assets": "node scripts/copy-assets.mjs",
+    "dev": "npm run assets && vite",
+    "build": "npm run assets && tsc -p tsconfig.json && vite build",
+    "preview": "vite preview --port 4173 --strictPort",
+    "test": "vitest run",
+    "e2e": "node scripts/e2e.mjs",
+    "e2e:all": "bash scripts/e2e-all.sh"
+  },
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "@huggingface/transformers": "^4.3.1"
+  },
+  "devDependencies": {
+    "coi-serviceworker": "^0.1.7",
+    "playwright": "^1.64.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.4",
+    "vitest": "^4.1.12"
+  },
+  "private": true
+}
